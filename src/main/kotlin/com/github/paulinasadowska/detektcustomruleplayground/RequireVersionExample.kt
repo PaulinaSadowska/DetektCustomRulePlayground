@@ -1,4 +1,4 @@
-package org.example.detekt
+package com.github.paulinasadowska.detektcustomruleplayground
 
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.FUNCTION, AnnotationTarget.CLASS)

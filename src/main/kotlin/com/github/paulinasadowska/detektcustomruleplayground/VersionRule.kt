@@ -1,4 +1,4 @@
-package org.example.detekt
+package com.github.paulinasadowska.detektcustomruleplayground
 
 import io.gitlab.arturbosch.detekt.api.CodeSmell
 import io.gitlab.arturbosch.detekt.api.Config
@@ -20,10 +20,13 @@ class VersionRule(config: Config) : Rule(config) {
     )
 
     private val annotatedClasses = mutableSetOf<String>()
+    var annotatedClassesPrepared = false
 
     override fun preVisit(root: KtFile) {
         annotatedClasses.clear()
-        //annotatedClasses.add("a")
+        annotatedClassesPrepared = false
+        visit(root)
+        annotatedClassesPrepared = true
     }
 
     override fun visitCallExpression(expression: KtCallExpression) {
@@ -33,10 +36,8 @@ class VersionRule(config: Config) : Rule(config) {
             val match: Boolean = annotatedClasses.map {
                 expressionName.textMatches(it)
             }.any { it }
-            if (match) {
-                report(
-                    CodeSmell(issue, Entity.from(expression), message = "FOUND ${expressionName.text}")
-                )
+            if (match && annotatedClassesPrepared) {
+                report(CodeSmell(issue, Entity.from(expression), message = "FOUND ${expressionName.text}"))
             }
         }
     }
@@ -44,7 +45,7 @@ class VersionRule(config: Config) : Rule(config) {
     override fun visitNamedFunction(function: KtNamedFunction) {
         super.visitNamedFunction(function)
 
-        if (function.isAnnotated) {
+        if (function.isAnnotated && !annotatedClassesPrepared) {
             function.annotationEntries.forEach { annotation ->
                 if (annotation.textMatches("""@RequiresVersion("1.2.0")""")) {
                     function.name?.let { annotatedClasses.add(it) }
