@@ -13,25 +13,45 @@ import org.junit.Test
 internal class CustomRuleSpec {
 
     @Test
-    fun `reports inner classes`() {
+    fun `reports versioning`() {
         val code = """
-        class A {
-          inner class B
+        class Bar {
+            @RequiresVersion("1.2.0")
+            fun a() : String {
+                "I'm not ready yet!"
+            }
+        }
+
+        class Foo {
+            private val bar = Bar()
+            fun b() {
+                println(bar.a())
+            }
         }
         """
-        val findings = MyRule(Config.empty).compileAndLintWithContext(env, code)
-        assertThat(findings).hasSize(1)
+        val findings = VersionRule(Config.empty).compileAndLintWithContext(env, code)
+        assertThat(findings.map { it.message }).isEqualTo(listOf("FOUND a"))
     }
 
     @Test
-    fun `doesn't report inner classes`() {
+    fun `reports versioning - different order`() {
         val code = """
-        class A {
-          class B
+        class Foo {
+            private val bar = Bar()
+            fun b() {
+                println(bar.a())
+            }
+        }
+
+        class Bar {
+            @RequiresVersion("1.2.0")
+            fun a() : String {
+                "I'm not ready yet!"
+            }
         }
         """
-        val findings = MyRule(Config.empty).compileAndLintWithContext(env, code)
-        assertThat(findings).isEmpty()
+        val findings = VersionRule(Config.empty).compileAndLintWithContext(env, code)
+        assertThat(findings.map { it.message }).isEqualTo(listOf("FOUND a"))
     }
 
     private val env: KotlinCoreEnvironment
