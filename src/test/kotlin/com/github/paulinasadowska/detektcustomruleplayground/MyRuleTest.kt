@@ -1,4 +1,4 @@
-package org.example.detekt
+package com.github.paulinasadowska.detektcustomruleplayground
 
 import com.google.common.truth.Truth.assertThat
 import io.github.detekt.test.utils.KotlinCoreEnvironmentWrapper
